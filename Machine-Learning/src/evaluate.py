@@ -1,17 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns 
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix 
 
-
-def history_plot():
-    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-    ax[0].plot(history.history["accuracy"], label="train")
-    ax[0].plot(history.history["val_accuracy"], label="val")
-    ax[0].set_title("Accuracy"); ax[0].set_xlabel("epoch"); ax[0].legend()
-    ax[1].plot(history.history["loss"], label="train")
-    ax[1].plot(history.history["val_loss"], label="val")
-    ax[1].set_title("Loss"); ax[1].set_xlabel("epoch"); ax[1].legend()
-    plt.show()
 
 def model_evaluation():
     model = keras.models.load_model("best_simple_cnn.keras")
