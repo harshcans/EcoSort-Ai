@@ -14,3 +14,4 @@ IMG = (224, 224)
 BATCH = 32
 LABELS = {}
 MODEL_PATH = ROOT/"artifact"
+

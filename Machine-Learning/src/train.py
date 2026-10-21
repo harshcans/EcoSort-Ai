@@ -16,7 +16,7 @@ def main():
     overview()
     model  = model_builder()
     callbacks = [
-        keras.callbacks.ModelCheckpoint("best_simple_cnn.keras", monitor="val_accuracy", save_best_only=True),
+        keras.callbacks.ModelCheckpoint("best_model.keras", monitor="val_accuracy", save_best_only=True),
         keras.callbacks.EarlyStopping(monitor="val_accuracy", patience=4, restore_best_weights=True),
     ]
     history = model.fit(train_ds, validation_data=val_ds, epochs=EPOCHS,
@@ -30,7 +30,7 @@ def main():
     ax[1].plot(history.history["val_loss"], label="val")
     ax[1].set_title("Loss"); ax[1].set_xlabel("epoch"); ax[1].legend()
     plt.show()
-    model_evaluation()
+    model_evaluation(model)
     model_saver()
 
 

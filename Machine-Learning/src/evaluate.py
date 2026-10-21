@@ -3,7 +3,7 @@ import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix 
 
 
-def model_evaluation():
+def model_evaluation(model):
     model = keras.models.load_model("best_simple_cnn.keras")
     print("Test loss / accuracy:", model.evaluate(test_ds, verbose=0))
 
