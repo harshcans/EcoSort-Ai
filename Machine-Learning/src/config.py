@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 ROOT = Path(__file__).resolve().parent.parent
 
 DATA_DIR = ROOT / "Data"
@@ -12,3 +13,4 @@ RANDOM_STATE = 42
 IMG = (224, 224)
 BATCH = 32
 LABELS = {}
+MODEL_PATH = ROOT/"artifact"

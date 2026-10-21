@@ -3,6 +3,7 @@ from .config import  DATA_DIR,IMG,BATCH
 import tensorflow as tf, numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
+from .config import DATA_DIR
 
 DATA = DATA_DIR
 
@@ -26,9 +27,11 @@ train_ds = keras.utils.image_dataset_from_directory(f"{DATA}/train", image_size=
 val_ds   = keras.utils.image_dataset_from_directory(f"{DATA}/val",   image_size=IMG, batch_size=BATCH, shuffle=False)
 test_ds  = keras.utils.image_dataset_from_directory(f"{DATA}/test",  image_size=IMG, batch_size=BATCH, shuffle=False)
 
-class_names = train_ds.class_names
-NUM_CLASSES = len(class_names)
-print(class_names)
+
+CLASS_NAMES = train_ds.class_names
+NUM_CLASSES = len(CLASS_NAMES)
+
+print(CLASS_NAMES)
 print('GPU:', tf.config.list_physical_devices('GPU') or 'none -> training will run on CPU (slower)')
 
 train_ds = train_ds.prefetch(AUTOTUNE)
