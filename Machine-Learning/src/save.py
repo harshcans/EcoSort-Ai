@@ -1,9 +1,15 @@
-def model_saver():
-    import json
-    from .config import MODEL_PATH
-    from .data import CLASS_NAMES
-    model.save(f"{MODEL_PATH}/simple_waste_classifier.keras")
-    json.dump(CLASS_NAMES, open("class_names.json", "w"))
-    print("saved simple_waste_classifier.keras and class_names.json")
+import os
+import json
+from .config import MODEL_PATH
+from .data import CLASS_NAMES
 
 
+def model_saver(model):
+    os.makedirs(MODEL_PATH, exist_ok=True)    # 
+    model_file = os.path.join(MODEL_PATH, "simple_waste_classifier.keras")
+    model.save(model_file)
+
+    with open(os.path.join(MODEL_PATH, "class_names.json"), "w") as f:
+        json.dump(CLASS_NAMES, f)
+
+    print(f"Saved {model_file} and class_names.json")
