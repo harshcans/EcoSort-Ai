@@ -4,7 +4,7 @@ seaborn
 scikit-learn
 tensorflow 
 joblib 
-fastapi 
+fastapi[standard]
 pathlib
 pydantic 
 uvicorn 
