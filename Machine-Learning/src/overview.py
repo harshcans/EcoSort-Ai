@@ -5,7 +5,7 @@ from .data import train_ds,test_ds,val_ds,CLASS_NAMES,NUM_CLASSES
 from .config import DATA_DIR 
 
 DATA = DATA_DIR
-counts = np.array([len(os.listdir(f"{DATA}/train/{c}")) for c in CLASS_NAMES])
+counts = np.array([len(list((DATA / "train" / c).iterdir())) for c in CLASS_NAMES])
 CLASS_WEIGHT = {i: float(counts.sum() / (NUM_CLASSES * n)) for i, n in enumerate(counts)}
 def overview():
     

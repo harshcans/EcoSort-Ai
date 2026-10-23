@@ -10,9 +10,6 @@ DATA = DATA_DIR
 
 for s in ["train", "test", "val"]:
     folder = DATA / s
-
-    assert folder.is_dir(), f"'{s}' folder not found in {DATA.resolve()}"
-
     counts = {
         c.name: len(list(c.iterdir()))
         for c in sorted(folder.iterdir())
@@ -32,7 +29,6 @@ CLASS_NAMES = train_ds.class_names
 NUM_CLASSES = len(CLASS_NAMES)
 
 print(CLASS_NAMES)
-print('GPU:', tf.config.list_physical_devices('GPU') or 'none -> training will run on CPU (slower)')
 
 train_ds = train_ds.prefetch(AUTOTUNE)
 val_ds   = val_ds.prefetch(AUTOTUNE)
