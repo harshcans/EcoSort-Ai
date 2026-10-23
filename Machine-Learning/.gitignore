@@ -13,6 +13,5 @@ __pycache__/
 
 # Model files (optional)
 *.h5
-*.keras
 *.pt
 *.pth
