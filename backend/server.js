@@ -1,0 +1,97 @@
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const multer = require("multer");
+const rateLimit = require("express-rate-limit");
+
+const { getCategories } = require("./guidanceService");
+const { classifyController } = require("./classifyController");
+
+const app = express();
+
+app.use(helmet());
+
+const allowedOrigin = process.env.FRONTEND_ORIGIN;
+
+app.use(cors({
+  origin: allowedOrigin || "http://localhost:5500"
+}));
+
+app.use(express.json({ limit: "100kb" }));
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: Number(process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024,
+    files: 1
+  }
+});
+
+const classifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many classification requests. Please try again later."
+  }
+});
+
+// Check that the backend is running.
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "EcoSort AI backend is running"
+  });
+});
+
+// List supported categories.
+app.get("/api/categories", (req, res) => {
+  res.status(200).json({
+    success: true,
+    categories: getCategories()
+  });
+});
+
+// Classify one uploaded image.
+app.post(
+  "/api/classify",
+  classifyLimiter,
+  upload.single("image"),
+  classifyController
+);
+
+// Handle invalid uploads and file-size errors.
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+
+    return res.status(status).json({
+      success: false,
+      message: err.code === "LIMIT_FILE_SIZE"
+        ? "Image exceeds the allowed upload size."
+        : "Invalid image upload."
+    });
+  }
+
+  console.error("Server error:", err.message);
+
+  return res.status(500).json({
+    success: false,
+    message: "An internal server error occurred."
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`EcoSort AI backend running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
