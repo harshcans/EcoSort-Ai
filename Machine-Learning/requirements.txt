@@ -1,0 +1,10 @@
+pandas 
+matplotlib
+seaborn 
+scikit-learn
+tensorflow 
+joblib 
+fastapi[standard]
+pathlib
+pydantic 
+uvicorn 
