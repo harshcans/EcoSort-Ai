@@ -11,7 +11,7 @@ const { getCategories } = require("./guidanceService");
 const { classifyController } = require("./classifyController");
 
 const app = express();
-
+app.set("trust proxy", 1);
 app.use(helmet());
 
 const allowedOrigin = process.env.FRONTEND_ORIGIN;
@@ -41,7 +41,6 @@ const classifyLimiter = rateLimit({
   }
 });
 
-// Check that the backend is running.
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -49,7 +48,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// List supported categories.
 app.get("/api/categories", (req, res) => {
   res.status(200).json({
     success: true,
@@ -57,7 +55,6 @@ app.get("/api/categories", (req, res) => {
   });
 });
 
-// Classify one uploaded image.
 app.post(
   "/api/classify",
   classifyLimiter,
@@ -65,7 +62,6 @@ app.post(
   classifyController
 );
 
-// Handle invalid uploads and file-size errors.
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
