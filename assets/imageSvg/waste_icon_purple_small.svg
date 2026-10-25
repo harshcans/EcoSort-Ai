@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 256 256" fill="none">
+  <title>Waste category icon</title>
+  <desc>Purple waste bin icon with discarded paper and bottle, designed for EcoSort AI.</desc>
+  <g stroke="#9369AD" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- discarded bottle -->
+    <path d="M75 43h18v17l8 10v47c0 7-5 12-12 12H79c-7 0-12-5-12-12V70l8-10V43Z" fill="#9369AD" fill-opacity="0.12"/>
+    <path d="M76 43h16M76 51h16"/>
+    <path d="M70 85h30"/>
+    <!-- crumpled paper -->
+    <path d="m148 49 31 7 13 27-15 18-29-6-9-25 9-21Z" fill="#9369AD" fill-opacity="0.12"/>
+    <path d="m148 49 9 26 35 8M157 75l-9 20M157 75l26-19"/>
+    <!-- bin lid -->
+    <path d="M48 105h160l-8 15H56l-8-15Z" fill="#9369AD" fill-opacity="0.16"/>
+    <path d="M105 91h46"/>
+    <!-- bin body -->
+    <path d="M63 120h130l-10 93c-1 8-7 13-15 13H88c-8 0-14-5-15-13l-10-93Z" fill="#9369AD" fill-opacity="0.12"/>
+    <path d="m96 139 4 66M128 139v66M160 139l-4 66"/>
+  </g>
+</svg>
