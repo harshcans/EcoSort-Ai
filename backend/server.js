@@ -1,6 +1,6 @@
 
 require("dotenv").config();
-
+const connectDB = require("./config/db");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -9,16 +9,21 @@ const rateLimit = require("express-rate-limit");
 
 const { getCategories } = require("./guidanceService");
 const { classifyController } = require("./classifyController");
+const authRoutes = require("./routes/authRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
+
 app.set("trust proxy", 1);
 app.use(helmet());
 
 const allowedOrigin = process.env.FRONTEND_ORIGIN;
 
-app.use(cors({
-  origin: allowedOrigin || "http://localhost:5500"
-}));
+app.use(
+  cors({
+    origin: allowedOrigin || "http://localhost:5500",
+  })
+);
 
 app.use(express.json({ limit: "100kb" }));
 
@@ -26,8 +31,8 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: Number(process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024,
-    files: 1
-  }
+    files: 1,
+  },
 });
 
 const classifyLimiter = rateLimit({
@@ -37,26 +42,29 @@ const classifyLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many classification requests. Please try again later."
-  }
+    message: "Too many classification requests. Please try again later.",
+  },
 });
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "EcoSort AI backend is running"
+    message: "EcoSort AI backend is running",
   });
 });
 
 app.get("/api/categories", (req, res) => {
   res.status(200).json({
     success: true,
-    categories: getCategories()
+    categories: getCategories(),
   });
 });
 
+app.use("/api/auth", authRoutes);
+
 app.post(
   "/api/classify",
+  authMiddleware,
   classifyLimiter,
   upload.single("image"),
   classifyController
@@ -68,9 +76,10 @@ app.use((err, req, res, next) => {
 
     return res.status(status).json({
       success: false,
-      message: err.code === "LIMIT_FILE_SIZE"
-        ? "Image exceeds the allowed upload size."
-        : "Invalid image upload."
+      message:
+        err.code === "LIMIT_FILE_SIZE"
+          ? "Image exceeds the allowed upload size."
+          : "Invalid image upload.",
     });
   }
 
@@ -78,16 +87,21 @@ app.use((err, req, res, next) => {
 
   return res.status(500).json({
     success: false,
-    message: "An internal server error occurred."
+    message: "An internal server error occurred.",
   });
 });
-
 const PORT = process.env.PORT || 5000;
 
-if (require.main === module) {
+async function startServer() {
+  await connectDB();
+
   app.listen(PORT, () => {
     console.log(`EcoSort AI backend running on port ${PORT}`);
   });
+}
+
+if (require.main === module) {
+  startServer();
 }
 
 module.exports = app;

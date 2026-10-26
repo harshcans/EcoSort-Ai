@@ -18,7 +18,6 @@ async function classifyController(req, res) {
       });
     }
 
-    // Verify the actual file contents, not just its filename.
     const detectedType = await fileTypeFromBuffer(req.file.buffer);
 
     if (!detectedType || !ALLOWED_IMAGE_TYPES.includes(detectedType.mime)) {
