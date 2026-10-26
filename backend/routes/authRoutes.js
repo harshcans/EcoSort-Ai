@@ -11,13 +11,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const { sendEmail } = require("../emailService");
 
 function hashOtp(otp) {
   return crypto.createHash("sha256").update(otp).digest("hex");
@@ -40,12 +34,22 @@ function createRefreshToken(user) {
 }
 
 async function sendOtpEmail(email, otp) {
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "EcoSort AI - Email Verification",
-    text: `Your EcoSort AI verification code is ${otp}. It expires in 5 minutes.`,
-  });
+ 
+await sendEmail({
+  to: email,
+  subject: "Verify your EcoSort AI account",
+  text: `Your EcoSort AI verification OTP is ${otp}. It expires in 5 minutes.`,
+  html: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+      <h2>Welcome to EcoSort AI</h2>
+      <p>Use the following OTP to verify your account:</p>
+      <h1 style="letter-spacing: 6px;">${otp}</h1>
+      <p>This OTP expires in 5 minutes.</p>
+      <p>If you did not request this, you can ignore this email.</p>
+    </div>
+  `,
+});
+
 }
 
 router.post("/register", async (req, res) => {
