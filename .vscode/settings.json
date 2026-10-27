@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/teamtask_1/ecosort/linux"
+    "cmake.sourceDirectory": "D:/teamtask_1/ecosort/linux",
+    "git.ignoreLimitWarning": true
 }
