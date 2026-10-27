@@ -10,8 +10,3 @@ __pycache__/
 
 # VS Code
 .vscode/
-
-# Model files (optional)
-*.h5
-*.pt
-*.pth
