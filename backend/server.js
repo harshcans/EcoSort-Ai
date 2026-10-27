@@ -19,13 +19,18 @@ app.use(helmet());
 
 const allowedOrigins = [
   "https://eco-sort-fend-a52x.vercel.app",
-  "http://localhost:5173",
-  "https://localhost:3000"
+  "http://localhost:5173"
 ];
 
 app.use(
   cors({
-    origin: allowedOrigin || "http://localhost:5500",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    }
   })
 );
 
