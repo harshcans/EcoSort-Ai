@@ -156,45 +156,9 @@ Counts (rows = true class, columns = predicted class):
 | **paper** | 6 | 1 | 15 | 7 | **255** | 16 |
 | **plastic** | 0 | 14 | 3 | 6 | 9 | **214** |
  
-**Most common mistakes**
+
  
-| True → Predicted | Count |
-|------------------|------:|
-| paper → plastic | 16 |
-| paper → metal | 15 |
-| plastic → glass | 14 |
-| glass → plastic | 11 |
-| glass → metal | 8 |
-| glass → paper | 8 |
- 
-Errors concentrate among visually similar materials: glass and plastic (transparent, reflective), and paper being mistaken for plastic or metal (likely packaging with coatings or foil).
- 
----
- 
-## 6. Strengths and Limitations
- 
-**Strengths**
-- Solid accuracy (~89%) with only 7,686 trainable parameters.
-- Balanced performance: every class has F1 above 0.85, and recall is within 0.84 to 0.94 for all classes.
-- Compact model (~15 MB) that is easy to deploy.
-**Limitations**
-- The backbone is frozen, so it cannot adapt to waste-specific textures and shapes.
-- Confusion remains between glass, plastic, paper and metal.
-- Trained and evaluated on one dataset; real-world photos (lighting, backgrounds, clutter) may give lower accuracy.
-- Each image is assumed to contain a single item.
----
- 
-## 7. Suggested Improvements
- 
-1. **Fine-tune the top layers of EfficientNetB0.** Unfreeze the last 20 to 40 layers (keep BatchNorm layers frozen) and train with a low learning rate (around 1e-5). This is the most likely way to gain several accuracy points.
-2. **Add `ReduceLROnPlateau`** to lower the learning rate when validation loss stalls, which fits the flat curves after epoch ~10.
-3. **Stronger augmentation:** add random zoom, brightness and contrast to improve robustness to real-world photos.
-4. **Train on a GPU** (WSL2 or a cloud notebook) to cut epoch time from ~3.5 minutes to seconds.
-5. **Collect more hard examples** of glass, plastic, paper and metal, especially packaging and transparent items.
-6. **Try a larger backbone** (EfficientNetB2/B3) if accuracy matters more than model size.
----
- 
-## 8. Files
+## 6. Files
  
 | File | Description |
 |------|-------------|
