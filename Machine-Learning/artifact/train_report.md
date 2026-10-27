@@ -1,7 +1,4 @@
-Claude
 
-
-Report · MD
 # EcoSort-AI: Waste Classification Model Report
  
 An image classifier that sorts waste into 6 categories using transfer learning (EfficientNetB0).
