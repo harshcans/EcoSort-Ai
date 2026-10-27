@@ -4,14 +4,12 @@ import 'custom_text_field.dart';
 
 class LoginFormSection extends StatefulWidget {
   final VoidCallback onToggleToSignUp;
-  final VoidCallback onForgotPassword;
   final Function(String email, String password, bool rememberMe) onLoginSubmit;
   final bool isLoading;
 
   const LoginFormSection({
     super.key,
     required this.onToggleToSignUp,
-    required this.onForgotPassword,
     required this.onLoginSubmit,
     this.isLoading = false,
   });
@@ -21,12 +19,8 @@ class LoginFormSection extends StatefulWidget {
 }
 
 class _LoginFormSectionState extends State<LoginFormSection> {
-  final TextEditingController _emailController = TextEditingController(
-    text: 'test@ecosort.com',
-  );
-  final TextEditingController _passwordController = TextEditingController(
-    text: '123456',
-  );
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
 
@@ -59,7 +53,6 @@ class _LoginFormSectionState extends State<LoginFormSection> {
         ),
         const SizedBox(height: 20),
 
-        // Email
         CustomTextField(
           controller: _emailController,
           hintText: 'Email Address',
@@ -69,7 +62,6 @@ class _LoginFormSectionState extends State<LoginFormSection> {
         ),
         const SizedBox(height: 16),
 
-        // Password
         CustomTextField(
           controller: _passwordController,
           hintText: 'Password',
@@ -86,69 +78,57 @@ class _LoginFormSectionState extends State<LoginFormSection> {
         const SizedBox(height: 16),
 
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: Checkbox(
-                    value: _rememberMe,
-                    activeColor: theme.colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    side: BorderSide(
-                      color: theme.colorScheme.primary,
-                      width: 1.5,
-                    ),
-                    onChanged: (val) {
-                      setState(() => _rememberMe = val ?? false);
-                    },
-                  ),
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: Checkbox(
+                value: _rememberMe,
+                activeColor: theme.colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Remember Me',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
+                side: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                onChanged: (val) {
+                  setState(() => _rememberMe = val ?? false);
+                },
+              ),
             ),
-            GestureDetector(
-              onTap: widget.onForgotPassword,
-              child: Text(
-                'Forgot password ?',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.w600,
-                ),
+            const SizedBox(width: 8),
+            Text(
+              'Remember Me',
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
         ),
         const SizedBox(height: 24),
 
-        // Primary Button
         PrimaryButton(
           text: 'LOGIN',
           isLoading: widget.isLoading,
           onPressed: () {
-            widget.onLoginSubmit(
-              _emailController.text.trim(),
-              _passwordController.text.trim(),
-              _rememberMe,
-            );
+            final email = _emailController.text.trim();
+            final password = _passwordController.text.trim();
+
+            if (email.isEmpty || password.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please enter your email and password'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+
+            widget.onLoginSubmit(email, password, _rememberMe);
           },
         ),
         const SizedBox(height: 16),
 
-        // "or" Divider
         Row(
           children: [
             Expanded(
@@ -177,7 +157,6 @@ class _LoginFormSectionState extends State<LoginFormSection> {
         ),
         const SizedBox(height: 16),
 
-        // Google Button
         OutlinedButton(
           onPressed: () {},
           style: OutlinedButton.styleFrom(
@@ -210,7 +189,6 @@ class _LoginFormSectionState extends State<LoginFormSection> {
         ),
         const SizedBox(height: 20),
 
-        // Bottom Toggle Link
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

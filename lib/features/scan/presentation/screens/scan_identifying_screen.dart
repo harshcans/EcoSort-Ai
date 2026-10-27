@@ -32,12 +32,13 @@ class ScanIdentifyingScreen extends StatelessWidget {
             Center(
               child: SizedBox(
                 width: mascotWidth,
+                height: 280,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     // Mascot SVG
                     SvgPicture.asset(
-                      'assets/imageSvg/Group 2 (1).svg',
+                      'assets/imageSvg/Group 45.svg',
                       width: mascotWidth,
                       fit: BoxFit.scaleDown,
                     ),

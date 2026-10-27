@@ -6,12 +6,10 @@ import '../../logic/auth_cubit.dart';
 import '../../logic/auth_state.dart';
 import '../widgets/auth_bottom_art.dart';
 import '../widgets/auth_brand_header.dart';
-import '../widgets/forgot_password_section.dart';
 import '../widgets/login_form_section.dart';
 import '../widgets/sign_up_form_section.dart';
 
-// 3 Screens ka Mode
-enum AuthMode { login, signUp, forgotPassword }
+enum AuthMode { login, signUp }
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -21,17 +19,12 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  // Shuruat Login Screen se hogi
   AuthMode _currentMode = AuthMode.login;
 
-  // Sign Up Controllers
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _signUpEmailController = TextEditingController(
-    text: 'test@ecosort.com',
-  );
-  final TextEditingController _signUpPasswordController = TextEditingController(
-    text: '123456',
-  );
+  final TextEditingController _signUpEmailController = TextEditingController();
+  final TextEditingController _signUpPasswordController =
+      TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
@@ -47,7 +40,7 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void _submitSignUp() {
+  void _submitSignUp() async {
     final name = _nameController.text.trim();
     final email = _signUpEmailController.text.trim();
     final password = _signUpPasswordController.text.trim();
@@ -58,23 +51,40 @@ class _AuthScreenState extends State<AuthScreen> {
         password.isEmpty ||
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
+        const SnackBar(
+          content: Text('Please fill all required fields'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
-    context.read<AuthCubit>().signUp(
+    final success = await context.read<AuthCubit>().signUp(
       name: name,
       email: email,
       password: password,
     );
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OTP sent to $email'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pushNamed(context, AppRoutes.otp, arguments: email);
+    }
   }
 
   @override
@@ -84,17 +94,21 @@ class _AuthScreenState extends State<AuthScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
-      bottomNavigationBar: SafeArea(top: false, child: const AuthBottomArt()),
+      bottomNavigationBar: const SafeArea(top: false, child: AuthBottomArt()),
       body: SafeArea(
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is AuthAuthenticated) {
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             } else if (state is AuthError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
-            }       
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
           },
           builder: (context, state) {
             final isLoading = state is AuthLoading;
@@ -105,7 +119,6 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Common Brand Header
                   AuthBrandHeader(
                     onBack: () {
                       if (_currentMode != AuthMode.login) {
@@ -115,18 +128,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       }
                     },
                   ),
-
                   const SizedBox(height: 24),
 
-                  // 1. LOGIN SECTION
                   if (_currentMode == AuthMode.login)
                     LoginFormSection(
                       isLoading: isLoading,
                       onToggleToSignUp: () {
                         setState(() => _currentMode = AuthMode.signUp);
-                      },
-                      onForgotPassword: () {
-                        setState(() => _currentMode = AuthMode.forgotPassword);
                       },
                       onLoginSubmit: (email, password, rememberMe) {
                         context.read<AuthCubit>().login(
@@ -135,21 +143,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         );
                       },
                     )
-                  // 2. FORGOT PASSWORD SECTION
-                  else if (_currentMode == AuthMode.forgotPassword)
-                    ForgotPasswordSection(
-                      isLoading: isLoading,
-                      onBackToLogin: () {
-                        setState(() => _currentMode = AuthMode.login);
-                      },
-                      onSendOtp: (email) {
-                        // Abhi OTP ko goli mar, bas print ya notification check kar le
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('OTP sent to $email')),
-                        );
-                      },
-                    )
-                  // 3. SIGN UP SECTION
                   else if (_currentMode == AuthMode.signUp) ...[
                     SignUpFormSection(
                       nameController: _nameController,
@@ -159,26 +152,24 @@ class _AuthScreenState extends State<AuthScreen> {
                       isPasswordVisible: _isPasswordVisible,
                       isConfirmPasswordVisible: _isConfirmPasswordVisible,
                       onTogglePassword: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
+                        setState(
+                          () => _isPasswordVisible = !_isPasswordVisible,
+                        );
                       },
                       onToggleConfirmPassword: () {
-                        setState(() {
-                          _isConfirmPasswordVisible =
-                              !_isConfirmPasswordVisible;
-                        });
+                        setState(
+                          () => _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible,
+                        );
                       },
                     ),
                     const SizedBox(height: 24),
-
                     PrimaryButton(
                       text: 'Create Account',
                       isLoading: isLoading,
                       onPressed: _submitSignUp,
                     ),
                     const SizedBox(height: 28),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -205,7 +196,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                     ),
                   ],
-
                   const SizedBox(height: 24),
                 ],
               ),

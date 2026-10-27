@@ -48,11 +48,12 @@ class WasteCategoryCard extends StatelessWidget {
           'Recyclable',
         );
 
+      case 'e-waste':
       case 'battery':
       case 'hazardous':
       case 'toxic':
         return (
-          'assets/imageSvg/hazardous.svg', // battery
+          'assets/imageSvg/hazardous.svg',
           false,
           'Hazardous',
           'Inorganic',

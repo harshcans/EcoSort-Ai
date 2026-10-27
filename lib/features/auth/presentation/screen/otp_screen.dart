@@ -1,11 +1,11 @@
-import 'package:ecosort/features/auth/logic/auth_cubit.dart';
-import 'package:ecosort/core/routes/app_routes.dart';
-import 'package:ecosort/features/auth/logic/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../../../core/presentation/widgets/primary_button.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../logic/auth_cubit.dart';
+import '../../logic/auth_state.dart';
 import '../widgets/auth_bottom_art.dart';
 import '../widgets/auth_brand_header.dart';
 
@@ -70,12 +70,16 @@ class _OtpScreenState extends State<OtpScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('OTP Verified Successfully!'),
+          content: Text('Account verified successfully!'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (route) => false,
+      );
     }
   }
 
@@ -107,7 +111,6 @@ class _OtpScreenState extends State<OtpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Reusable Header
                   AuthBrandHeader(onBack: () => Navigator.pop(context)),
                   const SizedBox(height: 20),
 
@@ -127,7 +130,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Title & Subtitle
                   Text(
                     'Enter OTP',
                     textAlign: TextAlign.center,
@@ -139,10 +141,10 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Enter the 6-digit code we sent to\nyour email address.',
+                    'Enter the 6-digit code we sent to\n${widget.email}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       height: 1.4,
                       color: theme.colorScheme.secondary,
                       fontWeight: FontWeight.w400,
@@ -161,7 +163,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Resend OTP Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -183,7 +184,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                 if (success && context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('OTP sent successfully!'),
+                                      content: Text('OTP resent successfully!'),
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );
@@ -204,7 +205,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Reusable Primary Button with loading state
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: PrimaryButton(
@@ -214,12 +214,11 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Inline Divider (—— or ——)
                   Row(
                     children: [
                       Expanded(
                         child: Divider(
-                          color: theme.colorScheme.primary.withOpacity(1),
+                          color: theme.colorScheme.primary,
                           thickness: 1,
                         ),
                       ),
@@ -229,13 +228,13 @@ class _OtpScreenState extends State<OtpScreen> {
                           'or',
                           style: TextStyle(
                             fontSize: 14,
-                            color: theme.colorScheme.primary.withOpacity(1),
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
                       Expanded(
                         child: Divider(
-                          color: theme.colorScheme.primary.withOpacity(1),
+                          color: theme.colorScheme.primary,
                           thickness: 1,
                         ),
                       ),
@@ -243,7 +242,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Back to Login Link
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Row(
@@ -276,7 +274,6 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
-  // Single OTP Box Widget
   Widget _buildOtpBox(int index, ThemeData theme, {bool enabled = true}) {
     return SizedBox(
       width: 44,

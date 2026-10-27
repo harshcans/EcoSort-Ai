@@ -1,3 +1,5 @@
+// this is useless file plzz don't waste your in reading // this is only for future work....
+
 import 'package:ecosort/core/routes/app_routes.dart';
 import 'package:ecosort/features/auth/logic/auth_cubit.dart';
 import 'package:flutter/material.dart';

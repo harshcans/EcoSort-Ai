@@ -11,7 +11,7 @@ class HistoryLocalService {
     final List<String> currentList = prefs.getStringList(_historyKey) ?? [];
 
     // Naya scan list me sabse upar add karna
-    currentList.insert(0, jsonEncode(result.toJson()));
+    // currentList.insert(0, jsonEncode(result.toJson()));
 
     // Memory limit: maximum last 50 scans save rakho
     if (currentList.length > 50) {

@@ -6,4 +6,5 @@ class AppRoutes {
   static const String otp = '/otp';
   static const String scan = '/scan';
   static const String scanresult = '/scanresult';
+  static const String disposalpage = '/disposalpage';
 }

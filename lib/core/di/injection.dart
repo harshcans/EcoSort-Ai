@@ -6,12 +6,10 @@ import '../../features/scan/data/repositories/scan_repository.dart';
 import '../../features/scan/data/repositories/api_scan_repositry.dart';
 
 // Auth imports
-import 'package:ecosort/features/auth/data/repository/mockauthrepository.dart';
-import 'package:ecosort/features/auth/data/repository/authrepository.dart';
+import '../../features/auth/data/repository/authrepository.dart';
 import '../../features/auth/logic/auth_cubit.dart';
 
-// history import
-
+// History imports
 import '../../features/history/logic/history_cubit.dart';
 
 class ServiceLocator {
@@ -23,24 +21,20 @@ class ServiceLocator {
   static late final ScanRepository scanRepository;
   static late final AuthRepository authRepository;
 
-  static Future<void> setup({bool isMockMode = true}) async{
-    // 1. Shared core services
+  static Future<void> setup({bool isMockMode = false}) async {
+    // 1. Shared core network & storage services
     dioClient = DioClient();
     pickerService = ImagePickerService();
     historyService = HistoryLocalService();
 
-    // 2. Repository switch
-    if (isMockMode) {
-      scanRepository = MockScanRepository();
-      authRepository = MockAuthRepository(); // Offline dummy auth
-    } else {
-      scanRepository = ApiScanRepository(dioClient: dioClient);
-      // Kal jab real auth API banegi toh yahan: ApiAuthRepository(dioClient: dioClient) aayega
-      authRepository = MockAuthRepository();
-    }
+    // 2. Real Auth Repository initialized
+    authRepository = AuthRepository(dioClient: dioClient);
+
+    // 3. Real Scan Repository (ML Classification)
+    scanRepository = ApiScanRepository(dioClient: dioClient);
   }
 
-  // Scan Cubit Factory
+  // Cubit Factories
   static ScanCubit createScanCubit() {
     return ScanCubit(
       scanRepository: scanRepository,
@@ -49,12 +43,10 @@ class ServiceLocator {
     );
   }
 
-  // Auth Cubit Factory
   static AuthCubit createAuthCubit() {
     return AuthCubit(authRepository: authRepository);
   }
 
-  // ServiceLocator class ke andar method add karo:
   static HistoryCubit createHistoryCubit() {
     return HistoryCubit(historyService: historyService);
   }

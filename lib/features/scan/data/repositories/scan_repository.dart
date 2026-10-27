@@ -11,17 +11,24 @@ class MockScanRepository implements ScanRepository {
     // Real API jaisa 2-second delay simulate karna
     await Future.delayed(const Duration(seconds: 2));
 
-    // Realistic dummy response
+    // Realistic dummy response according to new WasteResultModel
     return WasteResultModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      category: 'Plastic Bottle',
+      success: true,
+      status: 'classified',
+      category: 'plastic',
       confidence: 0.92,
-      binColor: 'Blue Bin (Recyclable)',
-      instructions: 'Rinse thoroughly, flatten, and discard with the cap on.',
+      guidance: WasteGuidance(
+        summary:
+            'Plastic bottles are recyclable. Ensure they are empty and clean before disposal.',
+        steps: [
+          'Empty any remaining liquids.',
+          'Rinse the bottle lightly.',
+          'Flatten the bottle and recap it.',
+          'Drop it into the dry recyclable bin.',
+        ],
+      ),
       scannedAt: DateTime.now(),
       imagePath: imageFile.path,
     );
   }
 }
-
-

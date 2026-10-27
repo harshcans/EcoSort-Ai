@@ -1,4 +1,5 @@
 import 'package:ecosort/core/presentation/widgets/primary_button.dart';
+import 'package:ecosort/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -24,20 +25,15 @@ class SplashScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 45),
-
-                        // 1. Logo (SVG)
                         Container(
                           height: 80,
                           alignment: Alignment.center,
                           child: SvgPicture.asset(
-                            'assets/imageSvg/Frame 22.svg', // <-- Yahan apna SVG path daalo
+                            'assets/imageSvg/Frame 22.svg',
                             fit: BoxFit.contain,
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
-                        // 2. Subtitle
                         Text(
                           'Scan it. Sort it. Save the planet.',
                           textAlign: TextAlign.center,
@@ -48,18 +44,16 @@ class SplashScreen extends StatelessWidget {
                                 fontSize: 16,
                               ),
                         ),
-                        SizedBox(height: 50), // 3. Mascot Character (SVG)
+                        SizedBox(height: 50),
                         Container(
                           height: 293,
                           alignment: Alignment.center,
                           child: SvgPicture.asset(
-                            'assets/imageSvg/Group 2 (1).svg', // <-- Yahan apna SVG path daalo
+                            'assets/imageSvg/Group 2 (1).svg',
                             fit: BoxFit.contain,
                           ),
                         ),
-
                         SizedBox(height: 50),
-                        // 4. Primary Button
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -68,14 +62,11 @@ class SplashScreen extends StatelessWidget {
                           child: PrimaryButton(
                             text: 'Get Started',
                             onPressed: () {
-                              // Navigation code yahan aayega
+                              Navigator.pushNamed(context, AppRoutes.auth);
                             },
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
-                        // 5. "or" Divider
                         const Row(
                           children: [
                             Expanded(child: Divider(color: Colors.black26)),
@@ -89,10 +80,7 @@ class SplashScreen extends StatelessWidget {
                             Expanded(child: Divider(color: Colors.black26)),
                           ],
                         ),
-
                         const SizedBox(height: 14),
-
-                        // 6. Bottom Text: Already have an account? Log in
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -106,7 +94,7 @@ class SplashScreen extends StatelessWidget {
                             ),
                             GestureDetector(
                               onTap: () {
-                                // Login route transition
+                                Navigator.pushNamed(context, AppRoutes.auth);
                               },
                               child: Text(
                                 'Log in',
@@ -122,7 +110,6 @@ class SplashScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
                       ],
                     ),

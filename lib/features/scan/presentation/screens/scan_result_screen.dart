@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:ecosort/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import '../widgets/waste_category_card.dart';
 import '../widgets/scan_action_button.dart';
@@ -7,12 +8,14 @@ class ScanResultScreen extends StatelessWidget {
   final File? scannedImage;
   final String category;
   final String? description;
+  final List<String>? steps;
 
   const ScanResultScreen({
     super.key,
     this.scannedImage,
     this.category = 'other',
     this.description,
+    this.steps,
   });
 
   @override
@@ -22,7 +25,7 @@ class ScanResultScreen extends StatelessWidget {
 
     final descText =
         description ??
-        'this model specifies this item belongs to the ${category.toLowerCase()} category. It appears to be a plastic bottle, which is commonly recyclable in most areas.';
+        'This item belongs to the ${category.toLowerCase()} category.';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -87,11 +90,8 @@ class ScanResultScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 18),
-
               WasteCategoryCard(category: category),
-
               const SizedBox(height: 20),
-
               Text(
                 descText,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -101,14 +101,48 @@ class ScanResultScreen extends StatelessWidget {
                 ),
               ),
 
+              // Steps from backend guidance
+              if (steps != null && steps!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Steps to Follow:',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...steps!.asMap().entries.map(
+                  (e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${e.key + 1}. ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            e.value,
+                            style: const TextStyle(fontSize: 14, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 28),
-
-              // Buttons
               ScanActionButtons(
-                onDisposalGuideTap: () {},
+                onDisposalGuideTap: () {
+                  Navigator.pushNamed(context, AppRoutes.disposalpage);
+                },
                 onScanWasteTap: () => Navigator.pop(context),
               ),
-
               const SizedBox(height: 16),
             ],
           ),

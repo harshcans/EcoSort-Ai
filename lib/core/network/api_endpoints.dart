@@ -1,16 +1,16 @@
 class ApiEndpoints {
-  // Backend server ka main link
-  static const String baseUrl = "https://api.ecosort.ai/v1";
+  // Render Production URL
+  static const String baseUrl = "https://ecosort-ai-u1ln.onrender.com";
 
-  // Scan aur Waste classification route
-  static const String classifyWaste = "/scan/classify";
+  // Auth Routes
+  static const String register = "/api/auth/register";
+  static const String login = "/api/auth/login";
+  static const String me = "/api/auth/me";
 
+  // ML Classifier Route
+  static const String classifyWaste = "/api/classify";
 
-  // otp ki backchodi ka liya ... otp evolved
-  static const String sendOtp = "/auth/send-otp";
-  static const String verifyOtp = "/auth/verify-otp";
-
-  // Timeouts (agar 15 sec tak net na chale toh error throw karega)
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  // Timeouts
+  static const Duration connectTimeout = Duration(seconds: 120);
+  static const Duration receiveTimeout = Duration(seconds: 120);
 }

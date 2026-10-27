@@ -1,3 +1,4 @@
+import 'package:ecosort/core/presentation/screens/disposal_screen.dart';
 import 'package:ecosort/core/presentation/screens/splash_screen.dart';
 import 'package:ecosort/features/scan/presentation/screens/scan_identifying_screen.dart';
 import 'package:ecosort/features/scan/presentation/screens/scan_screen.dart';
@@ -23,6 +24,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ScanScreen());
       case AppRoutes.scanresult:
         return MaterialPageRoute(builder: (_) => const ScanIdentifyingScreen());
+      case AppRoutes.disposalpage:
+        return MaterialPageRoute(builder: (_) => const DisposalScreen());
 
       case AppRoutes.history:
         return MaterialPageRoute(

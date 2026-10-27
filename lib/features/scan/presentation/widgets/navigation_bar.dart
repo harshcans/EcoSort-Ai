@@ -1,6 +1,8 @@
-// import 'package:ecosort/features/scan/presentation/screens/scan_screen.dart';
+import 'package:ecosort/core/presentation/screens/stats_screen.dart';
+import 'package:ecosort/features/history/presentation/screen/history_screen.dart';
 import 'package:flutter/material.dart';
 import '../screens/home_screen.dart';
+import '../../../../core/presentation/screens/setting_screen.dart';
 
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({super.key});
@@ -12,13 +14,11 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
 
-  // Chaaro tabs ki screens list
   final List<Widget> _screens = const [
     HomeScreen(),
-    Center(child: Text('Stats Screen')),
-    Center(child: Text('Stats Screen')),
-
-    Center(child: Text('Settings Screen')),
+    HistoryScreen(),
+    StatsScreen(),
+    SettingsPage(),
   ];
 
   @override
@@ -60,7 +60,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 ),
                 _buildNavItem(
                   index: 2,
-                  label: 'Info',
+                  label: 'stats',
                   icon: Icons.bar_chart_rounded,
                   activeColor: colorScheme.primary,
                   inactiveColor: colorScheme.primary.withOpacity(0.5),

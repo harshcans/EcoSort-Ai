@@ -1,26 +1,22 @@
-import 'package:ecosort/features/auth/data/model/user_model.dart';
+abstract class AuthState {}
 
-sealed class AuthState {}
+class AuthInitial extends AuthState {}
 
-class AuthInitial extends AuthState {
-  AuthInitial();
-}
+class AuthLoading extends AuthState {}
 
-class AuthLoading extends AuthState {
-  AuthLoading();
-}
-
-// User login hone ke baad usually user data ya token pass hota hai
 class AuthAuthenticated extends AuthState {
-  final UserModel user;
+  final dynamic user;
   AuthAuthenticated(this.user);
 }
 
-class AuthUnauthenticated extends AuthState {
-  AuthUnauthenticated();
-}
+class AuthUnauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
+}
+
+class AuthOtpSent extends AuthState {
+  final String email;
+  AuthOtpSent({required this.email});
 }
