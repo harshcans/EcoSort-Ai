@@ -19,19 +19,17 @@ def plot_history(history):
     plt.show()
 
 
-def model_evaluation(model):
+
+def model_evaluation(model, test_ds, class_names):
     loss, acc = model.evaluate(test_ds, verbose=0)
-    print(f"Test loss: {loss:.4f} | Test accuracy: {acc:.4f}")
-
-    y_true = np.concatenate([y.numpy() for _, y in test_ds])
-    if y_true.ndim > 1:                       # 
-        y_true = np.argmax(y_true, axis=1)
-    y_pred = np.argmax(model.predict(test_ds, verbose=0), axis=1)
-
-    print(classification_report(y_true, y_pred, target_names=CLASS_NAMES, digits=3))
-
-    cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",xticklabels=CLASS_NAMES,yticklabels=CLASS_NAMES)
-    plt.xlabel("Predicted"); plt.ylabel("True")
-    plt.tight_layout(); plt.show()
+    print(f"Test Loss: {loss:.4f} | Test Accuracy: {acc:.4f}\n")
+    y_true = tf.concat([y for _, y in test_ds], axis=0).numpy()
+    if y_true.ndim > 1:
+        y_true = y_true.argmax(axis=1)
+    y_pred = model.predict(test_ds, verbose=0).argmax(axis=1)
+    print(
+        classification_report(y_true, y_pred, target_names=class_names, digits=3))
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ConfusionMatrixDisplay.from_predictions(y_true,y_pred,display_labels=class_names,cmap="Blues",colorbar=False,ax=ax,)
+    plt.tight_layout()
+    plt.show()
