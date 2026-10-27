@@ -17,7 +17,11 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(helmet());
 
-const allowedOrigin = process.env.FRONTEND_ORIGIN;
+const allowedOrigins = [
+  "https://eco-sort-fend-a52x.vercel.app",
+  "http://localhost:5173",
+  "https://localhost:3000"
+];
 
 app.use(
   cors({
