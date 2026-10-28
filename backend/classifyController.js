@@ -2,28 +2,38 @@
 const { fileTypeFromBuffer } = require("file-type");
 const { classifyImage } = require("./modelService");
 const { getGuidance } = require("./guidanceService");
+const Scan = require("./models/Scan");
+const {
+  uploadImage,
+  deleteImage,
+} = require("./imageService");
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
-  "image/webp"
+  "image/webp",
 ];
 
 async function classifyController(req, res) {
+  let uploadedImage;
+
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Please upload an image using the 'image' field."
+        message: "Please upload an image using the 'image' field.",
       });
     }
 
     const detectedType = await fileTypeFromBuffer(req.file.buffer);
 
-    if (!detectedType || !ALLOWED_IMAGE_TYPES.includes(detectedType.mime)) {
+    if (
+      !detectedType ||
+      !ALLOWED_IMAGE_TYPES.includes(detectedType.mime)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Unsupported or invalid image. Use JPEG, PNG, or WebP."
+        message: "Unsupported or invalid image. Use JPEG, PNG, or WebP.",
       });
     }
 
@@ -37,21 +47,21 @@ async function classifyController(req, res) {
       return res.status(503).json({
         success: false,
         status: "model_unavailable",
-        message: "The classification service is temporarily unavailable."
+        message: "The classification service is temporarily unavailable.",
       });
     }
 
     const { category, confidence } = prediction;
-    const guidance = getGuidance(category);
 
-    // Do not return a category the application does not support.
-    if (!guidance) {
-      return res.status(200).json({
-        success: true,
-        status: "uncertain",
-        category: null,
-        confidence,
-        message: "This item could not be assigned to a supported category."
+    if (
+      typeof confidence !== "number" ||
+      !Number.isFinite(confidence) ||
+      confidence < 0 ||
+      confidence > 1
+    ) {
+      return res.status(502).json({
+        success: false,
+        message: "The classification service returned an invalid result.",
       });
     }
 
@@ -59,29 +69,71 @@ async function classifyController(req, res) {
       process.env.CONFIDENCE_THRESHOLD || 0.70
     );
 
-    if (confidence < threshold) {
-      return res.status(200).json({
-        success: true,
-        status: "uncertain",
-        category: null,
-        confidence,
-        message: "We could not identify this item reliably. Try a clearer photo."
-      });
+    if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
+      throw new Error("CONFIDENCE_THRESHOLD must be between 0 and 1.");
     }
 
-    return res.status(200).json({
+    const guidance = getGuidance(category);
+
+    const isClassified =
+      Boolean(guidance) && confidence >= threshold;
+
+    const status = isClassified ? "classified" : "uncertain";
+    const savedCategory = isClassified ? category : null;
+    const savedGuidance = isClassified ? guidance : null;
+
+    // Store the original uploaded image in Cloudinary.
+    uploadedImage = await uploadImage(req.file.buffer);
+
+    // Save the image URL and prediction details in MongoDB.
+    let scan;
+
+    try {
+      scan = await Scan.create({
+        userId: req.user.id,
+        imageUrl: uploadedImage.imageUrl,
+        imagePublicId: uploadedImage.imagePublicId,
+        category: savedCategory,
+        confidence,
+        status,
+        guidance: savedGuidance,
+      });
+    } catch (error) {
+      // Avoid leaving an image behind if saving the scan fails.
+      try {
+        await deleteImage(uploadedImage.imagePublicId);
+      } catch (cleanupError) {
+        console.error("Image cleanup failed:", cleanupError.message);
+      }
+
+      uploadedImage = null;
+      throw error;
+    }
+
+    const result = {
       success: true,
-      status: "classified",
-      category,
+      status,
+      category: savedCategory,
       confidence,
-      guidance
-    });
+      guidance: savedGuidance,
+      imageUrl: scan.imageUrl,
+      scanId: scan._id,
+      createdAt: scan.createdAt,
+    };
+
+    if (!isClassified) {
+      result.message = guidance
+        ? "We could not identify this item reliably. Try a clearer photo."
+        : "This item could not be assigned to a supported category.";
+    }
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Classification error:", error.message);
 
     return res.status(500).json({
       success: false,
-      message: "An unexpected error occurred during classification."
+      message: "An unexpected error occurred during classification.",
     });
   }
 }

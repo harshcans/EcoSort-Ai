@@ -1,5 +1,6 @@
 
 require("dotenv").config();
+
 const connectDB = require("./config/db");
 const express = require("express");
 const cors = require("cors");
@@ -10,6 +11,7 @@ const rateLimit = require("express-rate-limit");
 const { getCategories } = require("./guidanceService");
 const { classifyController } = require("./classifyController");
 const authRoutes = require("./routes/authRoutes");
+const scanRoutes = require("./routes/scanRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
@@ -70,6 +72,7 @@ app.get("/api/categories", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/scans", scanRoutes);
 
 app.post(
   "/api/classify",
@@ -99,6 +102,7 @@ app.use((err, req, res, next) => {
     message: "An internal server error occurred.",
   });
 });
+
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
