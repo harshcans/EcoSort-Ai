@@ -12,14 +12,16 @@ import '../widgets/sign_up_form_section.dart';
 enum AuthMode { login, signUp }
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  final AuthMode initialMode;
+
+  const AuthScreen({super.key, this.initialMode = AuthMode.login});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  AuthMode _currentMode = AuthMode.login;
+  late AuthMode _currentMode;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _signUpEmailController = TextEditingController();
@@ -30,6 +32,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMode = widget.initialMode;
+  }
 
   @override
   void dispose() {
@@ -69,22 +77,11 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    final success = await context.read<AuthCubit>().signUp(
+    await context.read<AuthCubit>().signUp(
       name: name,
       email: email,
       password: password,
     );
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('OTP sent to $email'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pushNamed(context, AppRoutes.otp, arguments: email);
-    }
   }
 
   @override
@@ -121,10 +118,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: [
                   AuthBrandHeader(
                     onBack: () {
-                      if (_currentMode != AuthMode.login) {
-                        setState(() => _currentMode = AuthMode.login);
-                      } else if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
+                      if (widget.initialMode == AuthMode.signUp) {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        if (_currentMode != AuthMode.login) {
+                          setState(() => _currentMode = AuthMode.login);
+                        } else if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       }
                     },
                   ),

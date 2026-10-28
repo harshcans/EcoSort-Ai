@@ -20,6 +20,7 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
+  bool _hasCheckedInitialMode = false;
   bool _isCameraSelected = true;
   File? _pickedImage;
   bool _isLoading = false;
@@ -152,6 +153,7 @@ class _ScanScreenState extends State<ScanScreen> {
               category: result.category,
               description: result.guidance?.summary,
               steps: result.guidance?.steps,
+              confidence: result.confidence,
             ),
           ),
         );
@@ -182,13 +184,30 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasCheckedInitialMode) {
+      _hasCheckedInitialMode = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (args is Map) {
+          if (args['mode'] == 'gallery' || args['openGallery'] == true) {
+            setState(() => _isCameraSelected = false);
+            _handleImagePick(ImageSource.gallery);
+          } else if (args['mode'] == 'camera') {
+            setState(() => _isCameraSelected = true);
+            _handleImagePick(ImageSource.camera);
+          }
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Agar analyze chal raha hai toh Fullscreen ScanIdentifyingScreen dikhao
     if (_isAnalyzing) {
-      return const PopScope(
-        canPop: false, // User analyzing ke dauraan back press na kare
-        child: ScanIdentifyingScreen(),
-      );
+      return const PopScope(canPop: false, child: ScanIdentifyingScreen());
     }
 
     final theme = Theme.of(context);
@@ -208,9 +227,9 @@ class _ScanScreenState extends State<ScanScreen> {
                 isCameraSelected: _isCameraSelected,
                 onToggle: (val) {
                   setState(() => _isCameraSelected = val);
-                  if (!val) {
-                    _handleImagePick(ImageSource.gallery);
-                  }
+                  _handleImagePick(
+                    val ? ImageSource.camera : ImageSource.gallery,
+                  );
                 },
               ),
               const SizedBox(height: 18),

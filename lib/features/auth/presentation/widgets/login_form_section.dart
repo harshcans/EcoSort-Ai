@@ -127,66 +127,9 @@ class _LoginFormSectionState extends State<LoginFormSection> {
             widget.onLoginSubmit(email, password, _rememberMe);
           },
         ),
-        const SizedBox(height: 16),
 
-        Row(
-          children: [
-            Expanded(
-              child: Divider(
-                color: theme.colorScheme.primary.withOpacity(1),
-                thickness: 1,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Text(
-                'or',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.colorScheme.primary.withOpacity(1),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Divider(
-                color: theme.colorScheme.primary.withOpacity(1),
-                thickness: 1,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.3)),
-            backgroundColor: theme.colorScheme.surface,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Continue with Google',
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward,
-                size: 16,
-                color: theme.colorScheme.primary,
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 20),
 
         Row(

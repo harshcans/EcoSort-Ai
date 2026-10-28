@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/disposal/disposal_step_card.dart';
 import '../widgets/disposal/result_header.dart';
 import '../widgets/disposal/waste_success_card.dart';
+import '../widgets/disposal/disposal_content_helper.dart';
 
 class DisposalStepData {
   final String stepNumber;
@@ -18,92 +19,90 @@ class DisposalStepData {
 }
 
 class DisposalScreen extends StatelessWidget {
-  final String category;
+  final String? category;
   final String? summary;
   final List<String>? rawSteps;
 
-  const DisposalScreen({
-    super.key,
-    this.category = 'plastic',
-    this.summary,
-    this.rawSteps,
-  });
+  const DisposalScreen({super.key, this.category, this.summary, this.rawSteps});
 
-  List<DisposalStepData> _getMappedSteps() {
-    final defaultSteps = [
-      DisposalStepData(
-        stepNumber: '1',
-        title: 'Empty and clean',
-        description:
-            'Remove leftover liquids or food, and rinse when appropriate.',
-        icon: Icons.water_drop_outlined,
-      ),
-      DisposalStepData(
-        stepNumber: '2',
-        title: 'Check the plastic type',
-        description:
-            'Look for the recycling symbol and local acceptance rules.',
-        icon: Icons.recycling_rounded,
-      ),
-      DisposalStepData(
-        stepNumber: '3',
-        title: 'Find the right bin',
-        description:
-            'Use a recycling collection point that accepts that type of plastic.',
-        icon: Icons.delete_outline_rounded,
-      ),
-    ];
-
-    if (rawSteps == null || rawSteps!.isEmpty) {
-      return defaultSteps;
+  String _getSvgForCategory(String category) {
+    final cat = category.trim().toLowerCase();
+    if (cat.contains('hazard') ||
+        cat.contains('battery') ||
+        cat.contains('e-waste') ||
+        cat.contains('toxic') ||
+        cat.contains('chemical')) {
+      return 'assets/imageSvg/hazardous.svg';
+    } else if (cat.contains('glass')) {
+      return 'assets/imageSvg/Group 26 (3).svg';
+    } else if (cat.contains('paper') || cat.contains('cardboard')) {
+      return 'assets/imageSvg/Group 26 (1).svg';
+    } else if (cat.contains('metal') || cat.contains('can')) {
+      return 'assets/imageSvg/Group 26 (2).svg';
+    } else if (cat.contains('organic') ||
+        cat.contains('bio') ||
+        cat.contains('food')) {
+      return 'assets/imageSvg/Group_26_dark_green.svg';
     }
-
-    return rawSteps!.asMap().entries.map((entry) {
-      final index = entry.key + 1;
-      final text = entry.value;
-
-      String title = 'Step $index';
-      String desc = text;
-
-      if (text.contains(':')) {
-        final parts = text.split(':');
-        title = parts[0].trim();
-        desc = parts.sublist(1).join(':').trim();
-      }
-
-      IconData icon = Icons.check_circle_outline;
-      final lower = text.toLowerCase();
-      if (lower.contains('clean') ||
-          lower.contains('rinse') ||
-          lower.contains('liquid') ||
-          lower.contains('empty')) {
-        icon = Icons.water_drop_outlined;
-      } else if (lower.contains('check') ||
-          lower.contains('type') ||
-          lower.contains('symbol') ||
-          lower.contains('recycle')) {
-        icon = Icons.recycling_rounded;
-      } else if (lower.contains('bin') ||
-          lower.contains('point') ||
-          lower.contains('drop') ||
-          lower.contains('find')) {
-        icon = Icons.delete_outline_rounded;
-      }
-
-      return DisposalStepData(
-        stepNumber: '$index',
-        title: title,
-        description: desc,
-        icon: icon,
-      );
-    }).toList();
+    return 'assets/imageSvg/Group 26 (4).svg'; // Plastic default
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final steps = _getMappedSteps();
+
+    // Route arguments safe extraction (Dono support karega: constructor parameters + route arguments)
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    final String rawCat = (category != null && category!.trim().isNotEmpty)
+        ? category!
+        : (args?['category']?.toString() ?? 'plastic');
+
+    final String effectiveCategory = rawCat.trim().isEmpty ? 'plastic' : rawCat;
+
+    final String? effectiveSummary =
+        (summary != null && summary!.trim().isNotEmpty)
+        ? summary
+        : args?['summary']?.toString();
+
+    final List<String>? effectiveRawSteps =
+        (rawSteps != null && rawSteps!.isNotEmpty)
+        ? rawSteps
+        : (args?['rawSteps'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList();
+
+    // Category ke hisaab se dynamic visual config (Hazardous, Organic, Metal, etc.)
+    final visualConfig = DisposalContentHelper.getConfig(
+      effectiveCategory,
+      colorScheme,
+    );
+
+    // Dynamic steps mapping: Backend steps + category icons
+    final List<DisposalStepData> mappedSteps = visualConfig.steps
+        .asMap()
+        .entries
+        .map((entry) {
+          final idx = entry.key;
+          final stepCfg = entry.value;
+
+          String finalDesc = stepCfg.fallbackDesc;
+          if (effectiveRawSteps != null &&
+              idx < effectiveRawSteps.length &&
+              effectiveRawSteps[idx].isNotEmpty) {
+            finalDesc = effectiveRawSteps[idx];
+          }
+
+          return DisposalStepData(
+            stepNumber: stepCfg.stepNumber,
+            title: stepCfg.title,
+            description: finalDesc,
+            icon: stepCfg.icon,
+          );
+        })
+        .toList();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -114,10 +113,14 @@ class DisposalScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ResultHeader(
-                category: category,
+                category: effectiveCategory,
                 subtitle:
-                    summary ??
-                    'Identify, sort and recycle $category responsibly.',
+                    (effectiveSummary != null && effectiveSummary.isNotEmpty)
+                    ? effectiveSummary
+                    : visualConfig.subtitle,
+                icon: visualConfig.icon,
+                iconColor: visualConfig.iconColor,
+                iconBgColor: visualConfig.iconBgColor,
                 onBack: () {
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
@@ -125,7 +128,10 @@ class DisposalScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-              const WasteSuccessCard(),
+              WasteSuccessCard(
+                title: '${visualConfig.title}\nDetected Successfully!!',
+                svgPath: _getSvgForCategory(effectiveCategory),
+              ),
               const SizedBox(height: 24),
               Text(
                 'How to dispose',
@@ -136,7 +142,7 @@ class DisposalScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              ...steps.map(
+              ...mappedSteps.map(
                 (step) => DisposalStepCard(
                   stepNumber: step.stepNumber,
                   title: step.title,

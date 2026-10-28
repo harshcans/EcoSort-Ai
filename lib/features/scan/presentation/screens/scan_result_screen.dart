@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:ecosort/core/routes/app_routes.dart';
+import 'package:ecosort/core/presentation/screens/disposal_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/waste_category_card.dart';
 import '../widgets/scan_action_button.dart';
@@ -7,6 +7,7 @@ import '../widgets/scan_action_button.dart';
 class ScanResultScreen extends StatelessWidget {
   final File? scannedImage;
   final String category;
+  final double confidence;
   final String? description;
   final List<String>? steps;
 
@@ -14,6 +15,7 @@ class ScanResultScreen extends StatelessWidget {
     super.key,
     this.scannedImage,
     this.category = 'other',
+    required this.confidence,
     this.description,
     this.steps,
   });
@@ -22,6 +24,9 @@ class ScanResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final int displayConfidence =
+        (confidence > 1.0 ? confidence : confidence * 100).round();
 
     final descText =
         description ??
@@ -91,7 +96,45 @@ class ScanResultScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
               WasteCategoryCard(category: category),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+
+              // Confidence Score Chip
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_rounded,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$displayConfidence% Match Confidence',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Waste Summary / Description
               Text(
                 descText,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -101,45 +144,20 @@ class ScanResultScreen extends StatelessWidget {
                 ),
               ),
 
-              // Steps from backend guidance
-              if (steps != null && steps!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Steps to Follow:',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...steps!.asMap().entries.map(
-                  (e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${e.key + 1}. ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            e.value,
-                            style: const TextStyle(fontSize: 14, height: 1.3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 28),
+              const SizedBox(height: 36),
+
               ScanActionButtons(
                 onDisposalGuideTap: () {
-                  Navigator.pushNamed(context, AppRoutes.disposalpage);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DisposalScreen(
+                        category: category,
+                        summary: description,
+                        rawSteps: steps,
+                      ),
+                    ),
+                  );
                 },
                 onScanWasteTap: () => Navigator.pop(context),
               ),

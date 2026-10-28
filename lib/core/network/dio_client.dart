@@ -109,6 +109,7 @@ import 'api_exceptions.dart';
 
 class DioClient {
   late final Dio _dio;
+  Dio get dio => _dio;
 
   DioClient({String? customBaseUrl}) {
     _dio = Dio(

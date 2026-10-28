@@ -7,4 +7,6 @@ class AppRoutes {
   static const String scan = '/scan';
   static const String scanresult = '/scanresult';
   static const String disposalpage = '/disposalpage';
+  static const String register = '/register';
+  static const String login = '/login';
 }

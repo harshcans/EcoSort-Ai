@@ -1,19 +1,21 @@
-import '../../scan/data/models/waste_result_model.dart';
+import '../data/model/scan_history_model.dart';
 
-sealed class HistoryState {}
+abstract class HistoryState {}
 
 class HistoryInitial extends HistoryState {}
 
 class HistoryLoading extends HistoryState {}
 
+class HistoryEmpty extends HistoryState {}
+
 class HistoryLoaded extends HistoryState {
-  final List<WasteResultModel> scans;
+  final List<ScanHistoryModel> scans;
+
   HistoryLoaded(this.scans);
 }
 
-class HistoryEmpty extends HistoryState {}
-
 class HistoryError extends HistoryState {
   final String message;
+
   HistoryError(this.message);
 }

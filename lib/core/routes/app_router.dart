@@ -27,6 +27,16 @@ class AppRouter {
       case AppRoutes.disposalpage:
         return MaterialPageRoute(builder: (_) => const DisposalScreen());
 
+      case AppRoutes.login:
+        return MaterialPageRoute(
+          builder: (_) => const AuthScreen(initialMode: AuthMode.login),
+        );
+
+      case AppRoutes.register:
+        return MaterialPageRoute(
+          builder: (_) => const AuthScreen(initialMode: AuthMode.signUp),
+        );
+
       case AppRoutes.history:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

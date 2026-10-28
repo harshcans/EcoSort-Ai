@@ -3,10 +3,12 @@ import 'package:flutter_svg/svg.dart';
 
 class WasteSuccessCard extends StatelessWidget {
   final String title;
+  final String? svgPath;
 
   const WasteSuccessCard({
     super.key,
     this.title = 'Waste detect\nsuccessfully!!',
+    this.svgPath,
   });
 
   @override
@@ -36,7 +38,7 @@ class WasteSuccessCard extends StatelessWidget {
                   height: 120,
                   width: 110,
                   child: SvgPicture.asset(
-                    'assets/imageSvg/Group 22 (1).svg',
+                    svgPath ?? 'assets/imageSvg/Group 22 (1).svg',
                     fit: BoxFit.contain,
                   ),
                 ),

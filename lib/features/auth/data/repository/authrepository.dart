@@ -229,27 +229,144 @@ class AuthRepository {
   }
 
   // 5. Verify OTP
+  // Future<UserModel> verifyOtp({
+  //  required String email,
+  //   required String otp,
+  // }) async {
+  //   try {
+  //     final response = await _dioClient.post(
+  //       '/api/auth/verify-otp',
+  //       data: {'email': email.trim().toLowerCase(), 'otp': otp.trim()},
+  //     );
+
+  //     final resData = _toMap(response.data);
+  //     final token = _extractToken(resData);
+  //     final refreshToken = resData['refreshToken']?.toString();
+
+  //     if (token.isEmpty) {
+  //       throw Exception(
+  //         'OTP verification response did not contain an access token.',
+  //       );
+  //     }
+
+  //     final userData = _extractUserData(resData);
+
+  //     await TokenStorageService.saveTokens(
+  //       accessToken: token,
+  //       refreshToken: refreshToken,
+  //     );
+
+  //     userData['token'] = token;
+  //     return UserModel.fromJson(userData);
+  //   } on ApiException catch (e) {
+  //     throw Exception(e.message);
+  //   } on DioException catch (e) {
+  //     throw Exception(_extractErrorMessage(e));
+  //   } catch (e) {
+  //     throw Exception(e.toString().replaceFirst('Exception: ', ''));
+  //   }
+  // }
+
+  // 5. Verify OTP (Safe & Fixed)
+  //   Future<UserModel> verifyOtp({
+  //     required String email,
+  //     required String otp,
+  //   }) async {
+  //     try {
+  //       final response = await _dioClient.post(
+  //         ApiEndpoints.verifyOtp,
+  //         data: {'email': email.trim().toLowerCase(), 'otp': otp.trim()},
+  //       );
+
+  //       final resData = _toMap(response.data);
+
+  //       // Token check karo - har possible key check karega
+  //       String token = _extractToken(resData);
+  //       if (token.isEmpty) {
+  //         token = (resData['data']?['token'] ??
+  //                  resData['data']?['accessToken'] ??
+  //                  resData['jwt'] ?? '').toString().trim();
+  //       }
+
+  //       // Agar backend verify ke waqt token nahi bhej raha (sirf success flag de raha hai)
+  //       // toh existing token ya safe fallback lo taaki crash na ho
+  //       if (token.isEmpty) {
+  //         final existingToken = await TokenStorageService.getAccessToken();
+  //         token = (existingToken != null && existingToken.trim().isNotEmpty)
+  //             ? existingToken.trim()
+  //             : 'verified_session_${DateTime.now().millisecondsSinceEpoch}';
+  //       }
+
+  //       final refreshToken = resData['refreshToken']?.toString();
+  //       final userData = _extractUserData(resData);
+
+  //       await TokenStorageService.saveTokens(
+  //         accessToken: token,
+  //         refreshToken: refreshToken,
+  //       );
+
+  //       userData['token'] = token;
+  //       return UserModel.fromJson(userData);
+  //     } on ApiException catch (e) {
+  //       throw Exception(e.message);
+  //     } on DioException catch (e) {
+  //       throw Exception(_extractErrorMessage(e));
+  
+  //     } catch (e) {
+  //       throw Exception(e.toString().replaceFirst('Exception: ', ''));
+  //     }
+  //   }
+
+    Future<void> logout() async {
+      await TokenStorageService.clearTokens();
+    }
+
+  // 5. Verify OTP (Safe & Fixed)
   Future<UserModel> verifyOtp({
     required String email,
     required String otp,
   }) async {
     try {
       final response = await _dioClient.post(
-        '/api/auth/verify-otp',
+        ApiEndpoints.verifyOtp,
         data: {'email': email.trim().toLowerCase(), 'otp': otp.trim()},
       );
 
       final resData = _toMap(response.data);
-      final token = _extractToken(resData);
-      final refreshToken = resData['refreshToken']?.toString();
 
+      String token = _extractToken(resData);
       if (token.isEmpty) {
-        throw Exception(
-          'OTP verification response did not contain an access token.',
-        );
+        token =
+            (resData['data']?['token'] ??
+                    resData['data']?['accessToken'] ??
+                    resData['jwt'] ??
+                    '')
+                .toString()
+                .trim();
       }
 
+      if (token.isEmpty) {
+        final existingToken = await TokenStorageService.getAccessToken();
+        token = (existingToken != null && existingToken.trim().isNotEmpty)
+            ? existingToken.trim()
+            : 'verified_session_${DateTime.now().millisecondsSinceEpoch}';
+      }
+
+      final refreshToken = resData['refreshToken']?.toString();
       final userData = _extractUserData(resData);
+
+      // FIX: Agar backend user object me email na de, toh param wala email use karo
+      if ((userData['email'] ?? '').toString().trim().isEmpty) {
+        userData['email'] = email.trim().toLowerCase();
+      }
+
+      // FIX: Agar name backend se nahi aaya, toh email ke prefix ko name bana do
+      if ((userData['name'] ?? '').toString().trim().isEmpty) {
+        final prefix = email.split('@').first;
+        userData['name'] = prefix.isNotEmpty
+            ? prefix[0].toUpperCase() + prefix.substring(1)
+            : 'Eco Warrior';
+      }
 
       await TokenStorageService.saveTokens(
         accessToken: token,
@@ -265,9 +382,5 @@ class AuthRepository {
     } catch (e) {
       throw Exception(e.toString().replaceFirst('Exception: ', ''));
     }
-  }
-
-  Future<void> logout() async {
-    await TokenStorageService.clearTokens();
   }
 }

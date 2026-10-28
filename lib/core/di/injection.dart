@@ -1,6 +1,7 @@
 import '../network/dio_client.dart';
 import '../utils/image_picker_service.dart';
-import '../../features/history/data/history_local_service.dart';
+
+// Scan imports
 import '../../features/scan/logic/scan_cubit.dart';
 import '../../features/scan/data/repositories/scan_repository.dart';
 import '../../features/scan/data/repositories/api_scan_repositry.dart';
@@ -10,36 +11,34 @@ import '../../features/auth/data/repository/authrepository.dart';
 import '../../features/auth/logic/auth_cubit.dart';
 
 // History imports
+import '../../features/history/data/repo/scan_history_repository.dart';
 import '../../features/history/logic/history_cubit.dart';
 
 class ServiceLocator {
   static late final DioClient dioClient;
   static late final ImagePickerService pickerService;
-  static late final HistoryLocalService historyService;
 
   // Repositories
   static late final ScanRepository scanRepository;
   static late final AuthRepository authRepository;
+  static late final ScanHistoryRepository scanHistoryRepository;
 
   static Future<void> setup({bool isMockMode = false}) async {
-    // 1. Shared core network & storage services
+    // 1. Core singletons
     dioClient = DioClient();
     pickerService = ImagePickerService();
-    historyService = HistoryLocalService();
 
-    // 2. Real Auth Repository initialized
+    // 2. Repositories initialization
     authRepository = AuthRepository(dioClient: dioClient);
-
-    // 3. Real Scan Repository (ML Classification)
     scanRepository = ApiScanRepository(dioClient: dioClient);
+    scanHistoryRepository = ScanHistoryRepository(dioClient: dioClient);
   }
 
-  // Cubit Factories
+  // Factory methods for Cubits
   static ScanCubit createScanCubit() {
     return ScanCubit(
       scanRepository: scanRepository,
       pickerService: pickerService,
-      historyService: historyService,
     );
   }
 
@@ -48,6 +47,6 @@ class ServiceLocator {
   }
 
   static HistoryCubit createHistoryCubit() {
-    return HistoryCubit(historyService: historyService);
+    return HistoryCubit(repository: scanHistoryRepository);
   }
 }

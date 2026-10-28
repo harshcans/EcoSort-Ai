@@ -9,12 +9,17 @@ import 'core/theme/theme_state.dart';
 import 'features/auth/logic/auth_cubit.dart';
 import 'features/history/logic/history_cubit.dart';
 import 'features/scan/logic/scan_cubit.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  await Hive.openBox('scan_history_box');
+
+  try {
+    await dotenv.load(fileName: ".env");
+    debugPrint(" .env loaded successfully");
+  } catch (e) {
+    debugPrint(" .env is not loaded : $e");
+  }
 
   await ServiceLocator.setup(isMockMode: false);
 
@@ -51,7 +56,6 @@ class EcoSortApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeState.themeMode,
-          // home: MainNavigationShell(),
           initialRoute: AppRoutes.splash,
           onGenerateRoute: AppRouter.onGenerateRoute,
         );

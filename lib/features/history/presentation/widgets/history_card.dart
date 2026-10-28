@@ -1,11 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 class HistoryCard extends StatelessWidget {
   final String title;
   final String category;
   final double confidence;
-  final String timestamp;
-  final int points;
+  final String? imagePath;
   final VoidCallback onTap;
 
   const HistoryCard({
@@ -13,27 +13,51 @@ class HistoryCard extends StatelessWidget {
     required this.title,
     required this.category,
     required this.confidence,
-    required this.timestamp,
-    this.points = 5,
+    this.imagePath,
     required this.onTap,
   });
+
+  Widget _buildImageWidget(String? path, _CategoryConfig config) {
+    if (path != null && path.trim().isNotEmpty) {
+      // Local File (Camera / Gallery cached path)
+      if (!path.startsWith('http')) {
+        final file = File(path);
+        if (file.existsSync()) {
+          return Image.file(file, width: 70, height: 70, fit: BoxFit.cover);
+        }
+      } else {
+        // Network Image (Render / Cloud storage)
+        return Image.network(
+          path,
+          width: 70,
+          height: 70,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              Icon(config.icon, color: config.foreground, size: 34),
+        );
+      }
+    }
+
+    // Default Fallback Icon
+    return Icon(config.icon, color: config.foreground, size: 34);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final config = _getCategoryConfig(category);
+    final config = _getCategoryConfig(category, colorScheme);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -41,129 +65,99 @@ class HistoryCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             child: Row(
               children: [
-                // 1. Left Vector Icon Tile
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
+                // 1. Left Thumbnail / Icon Box
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    width: 70,
+                    height: 70,
                     color: config.background,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    config.icon,
-                    color: config.foreground,
-                    size: 28,
+                    alignment: Alignment.center,
+                    child: _buildImageWidget(imagePath, config),
                   ),
                 ),
                 const SizedBox(width: 14),
 
-                // 2. Middle Information
+                // 2. Middle Content (Title + Dynamic Badge Pills)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1E293B),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                          letterSpacing: -0.2,
+                          color: colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
-                      Row(
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
-                          // Category Pill
+                          // Category Filled Badge
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
+                              horizontal: 12,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: config.foreground,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
                               config.label,
-                              style: const TextStyle(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
 
-                          // Match Accuracy Pill
+                          // Match Percentage Pastel Badge
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 3,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: config.background,
-                              borderRadius: BorderRadius.circular(12),
+                              color: config.badgeBackground,
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
                               '${(confidence * 100).toInt()}% match',
-                              style: TextStyle(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: config.foreground,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        timestamp,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
                     ],
                   ),
                 ),
 
-                // 3. Right: Points Badge & Arrow
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '+$points pts',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 22,
-                      color: Colors.grey.shade400,
-                    ),
-                  ],
+                // 3. Right Chevron Indicator
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    size: 26,
+                    color: colorScheme.onSurface.withOpacity(0.35),
+                  ),
                 ),
               ],
             ),
@@ -173,7 +167,7 @@ class HistoryCard extends StatelessWidget {
     );
   }
 
-  _CategoryConfig _getCategoryConfig(String type) {
+  _CategoryConfig _getCategoryConfig(String type, ColorScheme scheme) {
     final lower = type.toLowerCase();
 
     if (lower.contains('plastic')) {
@@ -181,6 +175,7 @@ class HistoryCard extends StatelessWidget {
         icon: Icons.local_drink_rounded,
         foreground: const Color(0xFF0284C7),
         background: const Color(0xFFE0F2FE),
+        badgeBackground: const Color(0xFFBAE6FD),
         label: 'Plastic',
       );
     } else if (lower.contains('paper') || lower.contains('cardboard')) {
@@ -188,6 +183,7 @@ class HistoryCard extends StatelessWidget {
         icon: Icons.inventory_2_rounded,
         foreground: const Color(0xFFB45309),
         background: const Color(0xFFFEF3C7),
+        badgeBackground: const Color(0xFFFDE68A),
         label: 'Paper',
       );
     } else if (lower.contains('glass')) {
@@ -195,6 +191,7 @@ class HistoryCard extends StatelessWidget {
         icon: Icons.wine_bar_rounded,
         foreground: const Color(0xFF0F766E),
         background: const Color(0xFFCCFBF1),
+        badgeBackground: const Color(0xFF99F6E4),
         label: 'Glass',
       );
     } else if (lower.contains('metal') || lower.contains('can')) {
@@ -202,6 +199,7 @@ class HistoryCard extends StatelessWidget {
         icon: Icons.hardware_rounded,
         foreground: const Color(0xFF475569),
         background: const Color(0xFFF1F5F9),
+        badgeBackground: const Color(0xFFE2E8F0),
         label: 'Metal',
       );
     } else if (lower.contains('e-waste') || lower.contains('electronic')) {
@@ -209,15 +207,18 @@ class HistoryCard extends StatelessWidget {
         icon: Icons.devices_other_rounded,
         foreground: const Color(0xFF7C3AED),
         background: const Color(0xFFEDE9FE),
+        badgeBackground: const Color(0xFFDDD6FE),
         label: 'E-Waste',
       );
     }
 
+    // Default General -> Organic (Green Theme)
     return _CategoryConfig(
-      icon: Icons.recycling_rounded,
-      foreground: const Color(0xFF1E5631),
-      background: const Color(0xFFE8F5E9),
-      label: 'General',
+      icon: Icons.eco_rounded,
+      foreground: const Color(0xFF16A34A),
+      background: const Color(0xFFDCFCE7),
+      badgeBackground: const Color(0xFFBBF7D0),
+      label: 'Organic',
     );
   }
 }
@@ -226,12 +227,14 @@ class _CategoryConfig {
   final IconData icon;
   final Color foreground;
   final Color background;
+  final Color badgeBackground;
   final String label;
 
   _CategoryConfig({
     required this.icon,
     required this.foreground,
     required this.background,
+    required this.badgeBackground,
     required this.label,
   });
 }
