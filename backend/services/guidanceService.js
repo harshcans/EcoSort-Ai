@@ -1,4 +1,4 @@
-const guidance = require("./guidance.json");
+const guidance = require("../data/guidance.json");
 
 function getGuidance(category) {
   return guidance[category] || null;

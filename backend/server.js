@@ -1,18 +1,21 @@
 
 require("dotenv").config();
 
-const connectDB = require("./config/db");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 
-const { getCategories } = require("./guidanceService");
-const { classifyController } = require("./classifyController");
+const connectDB = require("./config/db");
+const { getCategories } = require("./services/guidanceService");
+
 const authRoutes = require("./routes/authRoutes");
 const scanRoutes = require("./routes/scanRoutes");
+
 const authMiddleware = require("./middleware/authMiddleware");
+const imageValidator = require("./middleware/imageValidator");
+const { classifyController } = require("./controllers/classifyController");
 
 const app = express();
 
@@ -21,23 +24,44 @@ app.use(helmet());
 
 const allowedOrigins = [
   "https://eco-sort-fend-a52x.vercel.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
 ];
 
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin(origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
       return callback(new Error("Not allowed by CORS"));
-    }
+    },
   })
 );
 
 app.use(express.json({ limit: "100kb" }));
 
+// Health check
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "EcoSort AI backend is running",
+  });
+});
+
+// Supported waste categories
+app.get("/api/categories", (req, res) => {
+  res.status(200).json({
+    success: true,
+    categories: getCategories(),
+  });
+});
+
+// Authentication and scan history
+app.use("/api/auth", authRoutes);
+app.use("/api/scans", scanRoutes);
+
+// Image upload configuration
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -46,6 +70,7 @@ const upload = multer({
   },
 });
 
+// Limit classification requests
 const classifyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 30,
@@ -57,41 +82,30 @@ const classifyLimiter = rateLimit({
   },
 });
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "EcoSort AI backend is running",
-  });
-});
-
-app.get("/api/categories", (req, res) => {
-  res.status(200).json({
-    success: true,
-    categories: getCategories(),
-  });
-});
-
-app.use("/api/auth", authRoutes);
-app.use("/api/scans", scanRoutes);
-
+// Classification pipeline
 app.post(
   "/api/classify",
   authMiddleware,
   classifyLimiter,
   upload.single("image"),
+  imageValidator,
   classifyController
 );
 
+// Central error handler
 app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+  if (res.headersSent) {
+    return next(err);
+  }
 
-    return res.status(status).json({
+  if (err instanceof multer.MulterError) {
+    const tooLarge = err.code === "LIMIT_FILE_SIZE";
+
+    return res.status(tooLarge ? 413 : 400).json({
       success: false,
-      message:
-        err.code === "LIMIT_FILE_SIZE"
-          ? "Image exceeds the allowed upload size."
-          : "Invalid image upload.",
+      message: tooLarge
+        ? "Image exceeds the allowed upload size."
+        : "Invalid image upload.",
     });
   }
 
@@ -114,7 +128,10 @@ async function startServer() {
 }
 
 if (require.main === module) {
-  startServer();
+  startServer().catch((error) => {
+    console.error("Server startup failed:", error.message);
+    process.exit(1);
+  });
 }
 
 module.exports = app;

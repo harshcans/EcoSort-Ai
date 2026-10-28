@@ -1,5 +1,5 @@
 
-const cloudinary = require("./config/cloudinary");
+const cloudinary = require("../config/cloudinary");
 const { Readable } = require("stream");
 
 function uploadImage(buffer) {

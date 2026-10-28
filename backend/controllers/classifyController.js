@@ -1,42 +1,16 @@
 
-const { fileTypeFromBuffer } = require("file-type");
-const { classifyImage } = require("./modelService");
-const { getGuidance } = require("./guidanceService");
-const Scan = require("./models/Scan");
+const { classifyImage } = require("../services/modelService");
+const { getGuidance } = require("../services/guidanceService");
+const Scan = require("../models/Scan");
 const {
   uploadImage,
   deleteImage,
-} = require("./imageService");
-
-const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+} = require("../services/imageService");
 
 async function classifyController(req, res) {
   let uploadedImage;
 
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Please upload an image using the 'image' field.",
-      });
-    }
-
-    const detectedType = await fileTypeFromBuffer(req.file.buffer);
-
-    if (
-      !detectedType ||
-      !ALLOWED_IMAGE_TYPES.includes(detectedType.mime)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Unsupported or invalid image. Use JPEG, PNG, or WebP.",
-      });
-    }
-
     let prediction;
 
     try {
@@ -74,18 +48,16 @@ async function classifyController(req, res) {
     }
 
     const guidance = getGuidance(category);
-
-    const isClassified =
-      Boolean(guidance) && confidence >= threshold;
+    const isClassified = Boolean(guidance) && confidence >= threshold;
 
     const status = isClassified ? "classified" : "uncertain";
     const savedCategory = isClassified ? category : null;
     const savedGuidance = isClassified ? guidance : null;
 
-    // Store the original uploaded image in Cloudinary.
+    // Upload the image to Cloudinary.
     uploadedImage = await uploadImage(req.file.buffer);
 
-    // Save the image URL and prediction details in MongoDB.
+    // Save the classification result in MongoDB.
     let scan;
 
     try {
@@ -99,11 +71,14 @@ async function classifyController(req, res) {
         guidance: savedGuidance,
       });
     } catch (error) {
-      // Avoid leaving an image behind if saving the scan fails.
+      // Remove the uploaded image if saving the scan fails.
       try {
         await deleteImage(uploadedImage.imagePublicId);
       } catch (cleanupError) {
-        console.error("Image cleanup failed:", cleanupError.message);
+        console.error(
+          "Image cleanup failed:",
+          cleanupError.message
+        );
       }
 
       uploadedImage = null;
@@ -129,7 +104,7 @@ async function classifyController(req, res) {
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Classification error:", error.message);
+    console.error("Classification error:", error);
 
     return res.status(500).json({
       success: false,

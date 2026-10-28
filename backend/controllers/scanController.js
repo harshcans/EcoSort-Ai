@@ -1,8 +1,6 @@
 
 const Scan = require("../models/Scan");
-const {
-  deleteImage,
-} = require("../imageService");
+const { deleteImage } = require("../services/imageService");
 
 // GET /api/scans/history
 async function getScanHistory(req, res) {
