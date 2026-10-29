@@ -48,20 +48,36 @@ async function register(req, res) {
   try {
     const { name, email, password } = req.body;
 
-    if (
-      typeof name !== "string" ||
-      typeof email !== "string" ||
-      typeof password !== "string" ||
-      !name.trim() ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ||
-      password.length < 8
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Provide a valid name, email, and password of at least 8 characters.",
-      });
-    }
+   const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,72}$/;
+
+if (
+  typeof name !== "string" ||
+  typeof email !== "string" ||
+  typeof password !== "string" ||
+  !name.trim() ||
+  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Provide a valid name and email.",
+  });
+}
+
+if (password.length < 8 || password.length > 72) {
+  return res.status(400).json({
+    success: false,
+    message: "Password must be between 8 and 72 characters.",
+  });
+}
+
+if (!passwordRegex.test(password)) {
+  return res.status(400).json({
+    success: false,
+    message:
+      "Password must contain an uppercase letter, a lowercase letter, a number, and a special character.",
+  });
+}
 
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await User.findOne({
@@ -393,10 +409,62 @@ async function getMe(req, res) {
     });
   }
 }
+async function resendOTP(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+      isVerified: false,
+    }).select("+otpHash +otpExpiresAt");
+
+    // Do not reveal whether an account exists.
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "If an unverified account exists, a new OTP will be sent.",
+      });
+    }
+
+    const otp = String(randomInt(100000, 1000000));
+
+    // Send the new OTP first.
+    await sendOtpEmail(normalizedEmail, otp);
+
+    // Save the new OTP hash and expiry.
+    user.otpHash = hashOtp(otp);
+    user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "A new OTP has been sent to your email.",
+    });
+  } catch (error) {
+    console.error("Resend OTP error:", error.message);
+
+    return res.status(503).json({
+      success: false,
+      message: "Could not send a new OTP. Please try again later.",
+    });
+  }
+}
 
 module.exports = {
   register,
   verifyOTP,
+  resendOTP,
   login,
   refreshToken,
   logout,
